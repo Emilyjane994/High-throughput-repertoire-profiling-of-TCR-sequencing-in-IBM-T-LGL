@@ -1,0 +1,90 @@
+
+#Install required Packages 
+
+install.packages(c("devtools", "pkgload"))
+install.packages("htmltools")
+devtools::install_github("immunomind/immunarch", ref="dev")
+devtools::reload(pkgload::inst("immunarch"))
+install.packages("circlize")
+install.packages("ggstatsplot")
+install.packages("remotes")
+remotes::install_github("HetzDra/turboGliph")
+install.packages("latticeExtra")
+
+#Load in Libraries 
+library(immunarch)
+library(readr)
+library(ggplot2)
+library(ggstatsplot)
+library(ggseqlogo)
+library(dplyr)
+library(stringr)
+library(latticeExtra)
+
+####Load in IBM Peripheral blood samples### 
+
+immdata <- repLoad("PATH TO FILES") 
+
+#Determine clonality of CD8CD57+ TCRB repertoire 
+exp_vol <- repExplore(immdata$data, .method = "volume")
+vis(exp_vol, .by ="Status", .meta = immdata$meta )
+
+imm_hom <- repClonality(immdata$data,
+                        .method = "homeo",
+                        .clone.types = c(Small = .0001, Medium = .001, Large = .01, Hyperexpanded = 1))
+vis(imm_hom,.by="Status", .meta = immdata$meta)
+
+
+imm_top <- repClonality(immdata$data, .method = "top", .head = c(10, 100, 1000, 3000, 10000))
+vis(imm_top, .by = "Status", .meta = immdata$meta)
+
+#length of CDR3
+# Set the directory where your CSV files are located
+directory_path <- "working directory"
+
+# List all CSV files in the directory
+csv_files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
+
+# Read all CSV files into a list
+list_of_dataframes <- lapply(csv_files, read.csv)
+
+# Create a new list with selected data frames
+all_samples <- list_of_dataframes
+
+# Merge all data frames into a single data frame
+merged_dataframe <- bind_rows(all_samples)
+
+# Extract relevant columns
+CDR3 <- merged_dataframe[, c("readCount", "Length.CDR3", "Sample")]
+
+CDR3$Sample <- as.factor(CDR3$Sample)
+
+# Define grouping based on Sample names
+CDR3 <- CDR3 %>%
+  mutate(Grouped_Sample = case_when(
+    str_detect(Sample, "^H\\d+$") ~ "HC",    # HC samples like H1, H2, ...
+    str_detect(Sample, "^IBM\\d+$") ~ "IBM")) %>%
+  filter(Length.CDR3 <= 30)
+
+# Create a plot for CDR3 Length
+
+ggplot(CDR3, aes(x = Length.CDR3, y = readCount, fill = Grouped_Sample)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "CDR3 Length vs Count",
+       x = "CDR3 Length",
+       y = "Count") +
+  scale_fill_manual(values = c("IBM" = "royalblue", "HC" = "indianred")) +
+  scale_x_continuous(breaks = seq(0, 30, by = 5)) +  # Set x-axis breaks from 0 to 30 in increments of 5
+  scale_y_continuous(breaks = seq(0, 35000, by = 5000)) +  # Set y-axis breaks from 0 to 35000 in increments of 5000
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.border = element_blank(),       # Remove panel border
+    axis.line = element_line(color = "black", size = 1.5),  # Bold X and Y axis lines
+    axis.text.x = element_text(margin = margin(t = 0), face = "bold"),  # Bold X axis text
+    axis.text.y = element_text(margin = margin(r = 0), face = "bold"),  # Bold Y axis text
+    axis.title.x = element_text(margin = margin(t = 0), face = "bold"),  # Bold X axis title
+    axis.title.y = element_text(margin = margin(r = 0), face = "bold")   # Bold Y axis title
+  )
+
