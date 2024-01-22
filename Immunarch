@@ -5,11 +5,10 @@ install.packages(c("devtools", "pkgload"))
 install.packages("htmltools")
 devtools::install_github("immunomind/immunarch", ref="dev")
 devtools::reload(pkgload::inst("immunarch"))
-install.packages("circlize")
 install.packages("ggstatsplot")
 install.packages("remotes")
 remotes::install_github("HetzDra/turboGliph")
-install.packages("latticeExtra")
+
 
 #Load in Libraries 
 library(immunarch)
@@ -19,7 +18,7 @@ library(ggstatsplot)
 library(ggseqlogo)
 library(dplyr)
 library(stringr)
-library(latticeExtra)
+
 
 ####Load in IBM Peripheral blood samples### 
 
@@ -88,3 +87,251 @@ ggplot(CDR3, aes(x = Length.CDR3, y = readCount, fill = Grouped_Sample)) +
     axis.title.y = element_text(margin = margin(r = 0), face = "bold")   # Bold Y axis title
   )
 
+#repertoire overlap and tracking clonotypes 
+
+public <- repOverlap(immdata$data,.method = "public", .verbose = F)
+vis(public)
+
+trackclonotypes <- trackClonotypes(immdata$data, list("IBM04", 10), .col = "aa")
+p12 <- vis(trackclonotype)
+# Adjust Y-axis range to go from 0 to 1 with increments of 0.1
+p12 <- p12 + scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1))
+# Print the modified plot
+print(p12)
+
+
+#####Repertoire analysis######
+
+repOverlapAnalysis(public, "tsne+kmeans")%>% vis()
+
+imm_gu <- geneUsage(immdata$data, "hs.trbv", .norm = T)
+vis(imm_gu, .by = "Status", .meta = immdata$meta)
+
+imm_cl_pca <- geneUsageAnalysis(imm_gu, "js+pca+kmeans", .verbose = F)
+vis(imm_cl_pca, .plot = "clust")
+
+TSNE <- geneUsageAnalysis(imm_gu, "tsne")
+TSNE%>% vis()
+
+kmeans <- geneUsageAnalysis(imm_gu, "tsne+kmeans",.k=2, .verbose = F)
+kmeans%>% vis()
+
+
+#Diversity Estimation
+div_chao <- repDiversity(immdata$data, "chao1",.col="aa+v")
+vis(div_chao, .by = "Status", .meta = immdata$meta)
+
+div_all <- repDiversity(immdata$data, "div")
+vis(div_all)
+
+div_hill_all <- repDiversity(immdata$data, "hill")
+vis(div_hill_all, .by = "Status", .meta = immdata$meta)
+
+gini_simp <- repDiversity(immdata$data, "gini.simp")
+vis(gini_simp, .by = "Status", .meta = immdata$meta)
+
+div_gini_all <- repDiversity(immdata$data, "gini")
+div_gini_all
+div_gini_all_df <- data.frame(div_gini_all)
+
+# Save the dataframe to a file (e.g., CSV) with the new column name
+write.csv(div_gini_all_df, file = "immunr_gini_data.csv", row.names = FALSE)
+Gini_index <- read.csv("immunr_gini_data.csv",header = TRUE) 
+
+Gini_index$Group <- ifelse(grepl("^IBM", Gini_index$Subject), "IBM", "HC")
+
+# Plot with corrected aesthetics
+ggplot(Gini_index, aes(x = Group, y = Gini_index, fill = Group)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Gini Index by Group",
+       x = "Group",
+       y = "Gini Index") +
+  scale_fill_manual(values = c("IBM" = "royalblue", "HC" = "indianred")) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.border = element_blank(),       # Remove panel border
+    axis.line = element_line(color = "black", size = 0.5),  # Bold X and Y axis lines
+    axis.text.x = element_text(margin = margin(t = 0)),  # Bold X axis text
+    axis.text.y = element_text(margin = margin(r = 0)),  # Bold Y axis text
+    axis.title.x = element_text(margin = margin(t = 0)),  # Bold X axis title
+    axis.title.y = element_text(margin = margin(r = 0))   # Bold Y axis title
+  )
+
+
+###########Mapping of CDR3 sequences to known antigen specificities####
+#Load in VDJdb and McPAS database
+
+vdjdb = dbLoad("https://gitlab.com/immunomind/immunarch/raw/dev-0.5.0/private/vdjdb.slim.txt.gz", "vdjdb")
+vdj_ann <- dbAnnotate(immdata$data, vdjdb, "CDR3.aa", "cdr3")
+
+
+mcpas = dbLoad("https://gitlab.com/immunomind/immunarch/raw/dev-0.5.0/private/McPAS-TCR.csv.gz", "mcpas", .species = "Human", .chain = "TRB")
+mcpas_ann <- dbAnnotate(immdata$data, mcpas, c("CDR3.aa"), c("CDR3.beta.aa"))
+
+
+#merge IBM GLIPH data with vdj_cmv
+
+IBM_gliph <- read.csv("IBM_gliph_mcpas.csv", header = TRUE)
+IBM_gliph_CRG <- read.csv("gliph_member.csv", header=TRUE)
+
+# Assuming 'CDR3b' is the column you want to use for merging
+merged_df2 <- merge(mcpas,IBM_gliph, by = 'CDR3.beta.aa', all = TRUE)
+
+# Assuming 'CDR3b' is the column you want to use for merging
+merged_CRG <- merge(vdjdb,IBM_gliph_CRG, by = 'cdr3', all = TRUE)
+
+# Remove rows with NA values from merged_df2
+merged_CRG <- na.omit(merged_CRG)
+
+
+
+
+
+#######Load in IBM Peripheral blood/muscle samples########## 
+
+immundat2 <- repLoad("PATH")
+
+#Determine clonality of CD8CD57+ TCRB repertoire 
+exp_vol_blood_muscle <- repExplore(immundat2$data, .method = "volume")
+vis(exp_vol_blood_muscle, .by = ("Status"), .meta = immundat2$meta)
+
+
+imm_hom2 <- repClonality(immundat2$data,
+                         .method = "homeo",
+                         .clone.types = c(Small = .0001, Medium = .001, Large = .01, Hyperexpanded = 1))
+vis(imm_hom2,.by=("Status"), .meta = immundat2$meta)
+
+
+exp_len2 <- repExplore(immundat2$data, .method = "len", .col = "aa")
+vis(exp_len2, .by = ("Status"), .meta = immundat2$meta)
+
+
+imm_top2 <- repClonality(immundat2$data, .method = "top", .head = c(10, 100, 1000, 3000, 10000))
+imm_top2
+vis(imm_top2, .by = "Status", .meta = immundat2$meta)
+
+
+#gene usage
+imm_gene <- geneUsage(immundat2$data, "hs.trbv", .norm = T)
+vis(imm_gene, .by = "Status", .meta = immdata$meta)
+
+
+
+#repertoire overlap and tracking clonotypes 
+
+public2 <- repOverlap(immundat2$data,.method = "public", .verbose = F)
+vis(public2)
+
+repOverlapAnalysis(public2, "tsne+kmeans")%>% vis()
+
+
+
+
+#clonotype tracking 
+
+tcb <- trackClonotypes(immundat2$data, list("IBM13m", 10), .col = "aa")
+p12 <- vis(tcb)
+# Adjust Y-axis range to go from 0 to 1 with increments of 0.1
+p12 <- p12 + scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1))
+# Print the modified plot
+print(p12)
+
+#Calculate diversity of clonotypes 
+gini_muscle_blood <- repDiversity(immundat2$data, "gini")
+gini_muscle_blood
+gini_muscle_blood_df <- data.frame(gini_muscle_blood)
+# Save the dataframe to a file (e.g., CSV) with the new column name
+write.csv(gini_muscle_blood_df, file = "gini_muscle_blood.csv", row.names = FALSE)
+Gini_index2 <- read.csv("gini_TLGLmuscle2.csv",header = TRUE) 
+
+# plot the gini_index
+ggplot(Gini_index2, aes(x = T.LGL.status, y = gini_muscle_blood, fill=T.LGL.status)) +
+  geom_boxplot() +
+  labs(title = "Gini Index Distribution between IBM and HC",
+       x = "T.LGL.status",
+       y = "Gini Index")+
+  scale_fill_manual(values = c("Pos" = "royalblue", "Neg" = "indianred")) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.border = element_blank(),       # Remove panel border
+    axis.line = element_line(color = "black", size = 0.5),  # Bold X and Y axis lines
+    axis.text.x = element_text(margin = margin(t = 0)),  # Bold X axis text
+    axis.text.y = element_text(margin = margin(r = 0)),  # Bold Y axis text
+    axis.title.x = element_text(margin = margin(t = 0)),  # Bold X axis title
+    axis.title.y = element_text(margin = margin(r = 0))   # Bold Y axis title
+  )
+
+TLGL_gini <- ggstatsplot::ggbetweenstats(
+  data = Gini_index2,
+  x = Group,
+  y = gini_muscle_blood,
+  color = Group,
+  title = "gini Index",
+  subtitle = "Grouped by cluster", type="nonparametric")
+
+TLGL_gini
+
+
+###load in CD57pos and CD57- samples####
+immundat3 <- repLoad("PATH")
+
+#Determine clonality of CD8CD57+ and CD57- TCRB repertoire 
+exp_vol_blood_muscle <- repExplore(immundat3$data, .method = "volume")
+vis(exp_vol_blood_muscle, .by = ("Status"), .meta = immundat3$meta)
+
+imm_hom3 <- repClonality(immundat3$data,
+                         .method = "homeo",
+                         .clone.types = c(Small = .0001, Medium = .001, Large = .01, Hyperexpanded = 1))
+vis(imm_hom3,.by=("Status"), .meta = immundat3$meta)
+
+
+exp_len3 <- repExplore(immundat3$data, .method = "len", .col = "aa")
+vis(exp_len3)
+vis(exp_len3, .by = ("Status"), .meta = immundat3$meta)
+
+
+imm_top2 <- repClonality(immundat2$data, .method = "top", .head = c(10, 100, 1000, 3000, 10000))
+imm_top2
+vis(imm_top2, .by = "Status", .meta = immdata$meta)
+vis(p3)
+
+#gene usage
+imm_gene3 <- geneUsage(immundat3$data, "hs.trbv", .norm = T)
+vis(imm_gene3, .by = "Status", .meta = immundat3$meta)
+
+
+#repertoire overlap and tracking clonotypes 
+
+public3 <- repOverlap(immundat3$data,.method = "public", .verbose = F)
+vis(public3)
+
+repOverlapAnalysis(public2, "tsne+kmeans")%>% vis()
+
+#clonotype tracking 
+
+track_IBM2_57pos <- trackClonotypes(immundat3$data, list("IBM02_57pos", 10), .col = "aa")
+track_IBM3_57pos <- trackClonotypes(immundat3$data, list("IBM03_57pos", 10), .col = "aa")
+track_IBM4_57pos <- trackClonotypes(immundat3$data, list("IBM04_57pos", 10), .col = "aa")
+track_IBM5_57pos <- trackClonotypes(immundat3$data, list("IBM05_57pos", 10), .col = "aa")
+track_IBM6_57pos <- trackClonotypes(immundat3$data, list("IBM06_57pos", 10), .col = "aa")
+track_IBM12_57pos <- trackClonotypes(immundat3$data, list("IBM12_57pos", 10), .col = "aa")
+track_IBM13_57pos <- trackClonotypes(immundat3$data, list("IBM13_57pos", 10), .col = "aa")
+
+vis(track_IBM2_57pos)
+vis(track_IBM3_57pos)
+vis(track_IBM4_57pos)
+vis(track_IBM5_57pos)
+vis(track_IBM6_57pos)
+vis(track_IBM12_57pos)
+p35<-vis(track_IBM13_57pos)
+
+# Adjust Y-axis range to go from 0 to 1 with increments of 0.1
+p35 <- p35 + scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1))
+# Print the modified plot
+print(p35)
