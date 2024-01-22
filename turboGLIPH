@@ -1,0 +1,51 @@
+install.packages("remotes")
+remotes::install_github("HetzDra/turboGliph")
+
+#load in library
+
+library(turboGliph)
+library(ggseqlogo)
+
+#######TURBOGLIPH##########
+
+data <- read.csv("IBM_gliph.csv")
+
+# Save as a tab-delimited text file
+write.table(data, "IBM_gliph.txt", sep = "\t", row.names = FALSE)
+
+res <- turbo_gliph(cdr3_sequences = data,
+                   result_folder = "IBM_gliph_results_turbo",
+                   sim_depth = 1000,
+                   n_cores = 1,  kmer_mindepth = 3,motif_length = base::c(2, 3, 4))
+
+result <- gliph2(cdr3_sequences = data,
+                 result_folder = "IBM_gliph_results_G2",
+                 sim_depth = 1000,
+                 n_cores = 1,  kmer_mindepth = 3,motif_length = base::c(2, 3, 4))
+
+
+plot_network(clustering_output = res,
+             color_info = "CDR3b",
+             color_palette = grDevices::rainbow,
+             local_edge_color = "darkgrey",
+             global_edge_color = "orange",
+             cluster_min_size = 6,
+             n_cores = 1)
+
+
+res$cluster_properties[1:3,]
+res$motif_enrichment$selected_motifs
+result$cluster_list
+res$motif_enrichment
+
+
+##GGSeqlogo
+crg1 <- read.table("CRG-CAGSPHGNTEAFF.txt")
+crg2 <- read.table("CRG-CASSAVPGETQYF.txt")
+crg3 <- read.table("CRG-CASNFSPARGSSETQYF.txt")
+crg4 <- read.table("CRG-CAWLVPRDYTGELFF.txt")
+
+ggseqlogo(crg1)
+ggseqlogo(crg2)
+ggseqlogo(crg3)
+ggseqlogo(crg4)
