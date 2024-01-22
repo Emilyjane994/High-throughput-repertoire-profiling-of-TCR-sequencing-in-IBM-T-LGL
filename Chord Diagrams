@@ -1,0 +1,171 @@
+library(circlize)
+library(reshape2)
+library(tidyverse)
+library(dplyr)
+
+
+# Create a list to store data frames
+ibm_patients <- list()
+
+# Loop through IBM patients
+for (i in 1:13) {
+  # Read CSV file for each patient
+  ibm_patient <- read.csv(paste0("IBM", i, ".csv"), header = TRUE)
+  
+  # Extract relevant columns
+  circos_data <- ibm_patient[, c("TRBV", "TRBJ", "cloneCount")]
+  
+  
+  # Assuming circos_data is your data frame
+  matrix_data <- dcast(circos_data, TRBV ~ TRBJ, value.var = "cloneCount", fun.aggregate = sum)
+  
+  # Create a data frame for chord diagram
+  chord_data <- as.data.frame(matrix_data)
+  
+  # Set row names using the values in the "TRBV" column
+  rownames(chord_data) <- matrix_data$TRBV
+  
+  # Remove the first column
+  chord_data <- chord_data[, -1]
+  chord_data <- as.matrix(chord_data)
+  
+  # Store the processed data frame in the list
+  ibm_patients[[i]] <- chord_data
+}
+
+# Create chord diagrams for each IBM patient
+for (i in 1:13) {
+  circos.par(start.degree = 0, gap.degree = 3.5)
+  chordDiagram(ibm_patients[[i]], annotationTrack = "grid", preAllocateTracks = 1)
+  
+  circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+    xlim = get.cell.meta.data("xlim")
+    ylim = get.cell.meta.data("ylim")
+    sector.name = get.cell.meta.data("sector.index")
+    circos.text(mean(xlim), ylim[1] + .1, sector.name, facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.2))
+    circos.axis(h = "top", labels.cex = 0.2, major.tick.length = 0.2, sector.index = sector.name, track.index = 2)
+  }, bg.border = NA)
+  
+}
+
+
+circos.clear()
+
+####HC#####
+
+# Create a list to store data frames
+HC_patients <- list()
+
+# Loop through IBM patients
+for (i in 1:15) {
+  # Read CSV file for each patient
+  HC_patient <- read.csv(paste0("H", i, ".csv"), header = TRUE)
+  
+  # Extract relevant columns
+  circos_data2 <- HC_patient[, c("TRBV", "TRBJ", "readCount")]
+  
+  
+  # Assuming circos_data is your data frame
+  matrix_data2 <- dcast(circos_data2, TRBV ~ TRBJ, value.var = "readCount", fun.aggregate = sum)
+  
+  # Create a data frame for chord diagram
+  chord_data2 <- as.data.frame(matrix_data2)
+  
+  # Set row names using the values in the "TRBV" column
+  rownames(chord_data2) <- matrix_data2$TRBV
+  
+  # Remove the first column
+  chord_data2 <- chord_data2[, -1]
+  chord_data2 <- as.matrix(chord_data2)
+  
+  # Store the processed data frame in the list
+  HC_patients[[i]] <- chord_data2
+}
+
+# Create chord diagrams for each IBM patient
+for (i in 1:15) {
+  circos.par(start.degree = 0, gap.degree = 3.5)
+  chordDiagram(HC_patients[[i]], annotationTrack = "grid", preAllocateTracks = 1)
+  
+  circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+    xlim = get.cell.meta.data("xlim")
+    ylim = get.cell.meta.data("ylim")
+    sector.name = get.cell.meta.data("sector.index")
+    circos.text(mean(xlim), ylim[1] + .1, sector.name, facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.2))
+    circos.axis(h = "top", labels.cex = 0.2, major.tick.length = 0.2, sector.index = sector.name, track.index = 2)
+  }, bg.border = NA)
+  
+}
+
+#IBM muscle 
+
+# Create a list to store data frames
+IBM_muscles <- list()
+
+# Loop through IBM patients
+for (i in 12:17) {
+  # Read CSV file for each patient
+  IBM_muscle <- read.csv(paste0("IBM", i, ".csv"), header = TRUE)
+  
+  # Extract relevant columns
+  circos_data3 <- IBM_muscle[, c("TRBV", "TRBJ", "cloneCount")]
+  
+  
+  # Assuming circos_data is your data frame
+  matrix_data3 <- dcast(circos_data3, TRBV ~ TRBJ, value.var = "cloneCount", fun.aggregate = sum)
+  
+  # Create a data frame for chord diagram
+  chord_data3 <- as.data.frame(matrix_data3)
+  
+  # Set row names using the values in the "TRBV" column
+  rownames(chord_data3) <- matrix_data3$TRBV
+  
+  # Remove the first column
+  chord_data3<- chord_data3[, -1]
+  chord_data3 <- as.matrix(chord_data3)
+  
+  # Store the processed data frame in the list
+ IBM_muscles[[i]] <- chord_data3
+}
+
+# Create chord diagrams for each IBM patient
+for (i in 15) {
+  circos.par(start.degree = 0, gap.degree = 3.5)
+  chordDiagram(IBM_muscles[[i]], annotationTrack = "grid", preAllocateTracks = 1)
+  
+  circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+    xlim = get.cell.meta.data("xlim")
+    ylim = get.cell.meta.data("ylim")
+    sector.name = get.cell.meta.data("sector.index")
+    circos.text(mean(xlim), ylim[1] + .1, sector.name, facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.2))
+    circos.axis(h = "top", labels.cex = 0.2, major.tick.length = 0.2, sector.index = sector.name, track.index = 2)
+  }, bg.border = NA)
+  
+}
+
+
+#IBM muscle 
+
+# Create a list to store data frames
+overlap <- read.csv('repertoire overlap.csv', header=TRUE)
+
+# Set row names to first column
+rownames(overlap) <- overlap[,1]
+  
+# Remove the first column
+overlap<- overlap[, -1]
+overlap<- as.matrix(overlap)
+  
+
+# Create chord diagrams for each IBM patient
+  circos.par(start.degree = 0, gap.degree = 3.5)
+  chordDiagram(overlap, annotationTrack = "grid", preAllocateTracks = 1)
+  
+  circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+    xlim = get.cell.meta.data("xlim")
+    ylim = get.cell.meta.data("ylim")
+    sector.name = get.cell.meta.data("sector.index")
+    circos.text(mean(xlim), ylim[1] + .1, sector.name, facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.2))
+    circos.axis(h = "top", labels.cex = 0.2, major.tick.length = 0.2, sector.index = sector.name, track.index = 2)
+  }, bg.border = NA)
+  
