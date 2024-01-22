@@ -4,9 +4,15 @@ In this study delve into the intricate relationship between T-LGL lymphoprolifer
 
 ![image](https://github.com/Emilyjane994/High-throughput-repertoire-profiling-of-TCR-sequencing-in-IBM-T-LGL/assets/134034905/5e6cf3db-c937-428b-b2e6-517e7df094d9)
 
-Main R Packages used: 
-immunarch- for repertoire analysis- ImmunoMind Team. (2019). immunarch: An R Package for Painless Bioinformatics Analysis of T-Cell and B-Cell Immune Repertoires. Zenodo. http://doi.org/10.5281/zenodo.3367200
-circlize- for chord Diagrams showing TRVB-TRVJ combinations 
-latticeExtra- for pooled TRVB-TRVJ combinations (cityscape plots)
-GLIPH/turboGliph (GROUPING OF LYMPHOCYTE INTERACTIONS BY PARATOPE HOTSPOTS)-[Huang H., Wang C., et al. Nat Biotechnol 2020 Apr 27; https://doi.org/10.1038/s41587-020-0505-4] 
-ggseqlogo- for making motif sequence logos- Wagih, Omar. ggseqlogo: a versatile R package for drawing sequence logos. Bioinformatics 33, no. 22 (2017): 3645-3647. https://doi.org/10.1093/bioinformatics/btx469 PMID: 29036507
+**Main R Packages used:**
+
+**1. immunarch-** for repertoire analysis- ImmunoMind Team. (2019). immunarch: An R Package for Painless Bioinformatics Analysis of T-Cell and B-Cell Immune Repertoires. Zenodo. http://doi.org/10.5281/zenodo.3367200
+
+**2. circlize-** for chord Diagrams showing TRVB-TRVJ combinations
+   
+**3. latticeExtra-** for pooled TRVB-TRVJ combinations (cityscape plots)
+
+**4.GLIPH/turboGliph** (GROUPING OF LYMPHOCYTE INTERACTIONS BY PARATOPE HOTSPOTS)-[Huang H., Wang C., et al. Nat Biotechnol 2020 Apr 27; https://doi.org/10.1038/s41587-020-0505-4] 
+
+**5.ggseqlogo-** for making motif sequence logos- Wagih, Omar. ggseqlogo: a versatile R package for drawing sequence logos. Bioinformatics 33, no. 22 (2017): 3645-3647. https://doi.org/10.1093/bioinformatics/btx469 
+PMID: 29036507
