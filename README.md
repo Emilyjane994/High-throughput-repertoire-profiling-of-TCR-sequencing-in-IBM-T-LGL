@@ -17,3 +17,5 @@ In this study delve into the intricate relationship between T-LGL lymphoprolifer
 
 **5.ggseqlogo-** for making motif sequence logos- Wagih, Omar. ggseqlogo: a versatile R package for drawing sequence logos. Bioinformatics 33, no. 22 (2017): 3645-3647. https://doi.org/10.1093/bioinformatics/btx469 
 PMID: 29036507
+
+[![DOI](https://zenodo.org/badge/746719922.svg)](https://zenodo.org/doi/10.5281/zenodo.10572389)
