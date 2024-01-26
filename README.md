@@ -2,7 +2,8 @@ T-cell large granular lymphocytes (T-LGL) are a complex subset of immune cells t
 
 In this study delve into the intricate relationship between T-LGL lymphoproliferative disorders and the broader landscape of chronic inflammation, autoimmunity, and malignancy. By exploring the T cell repertoire, we aim to shed light on the nature of T-LGL expansions and their significance in the context of diseases like IBM.
 
-![image](https://github.com/Emilyjane994/High-throughput-repertoire-profiling-of-TCR-sequencing-in-IBM-T-LGL/assets/134034905/5e6cf3db-c937-428b-b2e6-517e7df094d9)
+![Untitled (13)](https://github.com/Emilyjane994/High-throughput-repertoire-profiling-of-TCR-sequencing-in-IBM-T-LGL/assets/134034905/e2394347-2196-44ae-a3e8-74e625d4ab83)
+
 
 **Main R Packages used:**
 
