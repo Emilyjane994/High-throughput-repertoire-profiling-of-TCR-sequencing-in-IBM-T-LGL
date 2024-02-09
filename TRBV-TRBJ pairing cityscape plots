@@ -8,62 +8,29 @@ library(latticeExtra)
 
 ##Cityscape plot for TRBV-TRBJ pairs in HC###
 
-# Set the directory where your CSV files are located
-directory_path <- "PATH"
-
-# List all CSV files in the directory
-csv_files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
-
-# Read all CSV files into a list
-list_of_dataframes <- lapply(csv_files, read.csv)
-
-# Create a new list with selected dataframes
-all_samples <- list_of_dataframes
-
-# Merge all dataframes into a single dataframe
-merged_dataframe <- bind_rows(all_samples)
-
 # Extract relevant columns
-HC <- merged_dataframe[, c("TRBV", "TRBJ", "Frequency")]
+HC <- read.csv("combined_data_HC_totalcounts.csv", header=TRUE)
 
-colnames(HC) <- c("TRBV", "TRBJ", "Frequency")
+colnames(HC) <- c("TRBV", "TRBJ", 'count', "Frequency")
 
 # Convert TRBV and TRBJ to factors
 HC$TRBV <- as.factor(HC$TRBV)
 HC$TRBJ <- as.factor(HC$TRBJ)
 HC$Frequency <- as.numeric(HC$Frequency)
 
-
 # Create cityscape plot
 
 HC <- cloud(Frequency ~ TRBV * TRBJ, data = HC, xbase=0.4, ybase=0.4,col = "red", 
             scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
             panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
-            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE)
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
 print(HC)
 
-
 ##Cityscape plot for TRBV-TRBJ pairs in IBM###
+IBM <- read.csv("combined_data_IBM_totalcounts.csv", header=TRUE)
 
-# Set the directory where your CSV files are located
-directory_path <- "PATH"
 
-# List all CSV files in the directory
-csv_files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
-
-# Read all CSV files into a list
-list_of_dataframes <- lapply(csv_files, read.csv)
-
-# Create a new list with selected dataframes
-all_samples <- list_of_dataframes
-
-# Merge all dataframes into a single dataframe
-merged_dataframe <- bind_rows(all_samples)
-
-# Extract relevant columns
-IBM <- merged_dataframe[, c("TRBV", "TRBJ", "Frequency")]
-
-colnames(IBM) <- c("TRBV", "TRBJ", "Frequency")
+colnames(IBM) <- c("TRBV", "TRBJ", 'count', "Frequency")
 
 # Convert TRBV and TRBJ to factors
 IBM$TRBV <- as.factor(IBM$TRBV)
@@ -75,9 +42,8 @@ IBM$Frequency <- as.numeric(IBM$Frequency)
 IBM <- cloud(Frequency ~ TRBV * TRBJ, data = IBM, xbase=0.4, ybase=0.4,col = "red", 
             scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
             panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
-            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE)
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
 print(IBM)
-
 
 
 
