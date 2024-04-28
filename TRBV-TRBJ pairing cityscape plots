@@ -6,16 +6,19 @@ library(dplyr)
 library(stringr)
 library(latticeExtra)
 
-##Cityscape plot for TRBV-TRBJ pairs in HC###
+
+#########Gene usage with Cityscrape plot-HC
+
+#read in csv file
+HC <- read.csv("combined_data_HC_totalcounts (1).csv", header=TRUE)
 
 # Extract relevant columns
-HC <- read.csv("combined_data_HC_totalcounts.csv", header=TRUE)
-
 colnames(HC) <- c("TRBV", "TRBJ", 'count', "Frequency")
 
 # Convert TRBV and TRBJ to factors
 HC$TRBV <- as.factor(HC$TRBV)
 HC$TRBJ <- as.factor(HC$TRBJ)
+HC$count <- as.numeric(HC$count)
 HC$Frequency <- as.numeric(HC$Frequency)
 
 # Create cityscape plot
@@ -23,10 +26,17 @@ HC$Frequency <- as.numeric(HC$Frequency)
 HC <- cloud(Frequency ~ TRBV * TRBJ, data = HC, xbase=0.4, ybase=0.4,col = "red", 
             scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
             panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
-            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 100))
 print(HC)
 
-##Cityscape plot for TRBV-TRBJ pairs in IBM###
+HC <- cloud(count ~ TRBV * TRBJ, data = HC, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "count", names.arg = FALSE, zlim = c(0, 30000))
+print(HC)
+
+
+# Extract relevant columns
 IBM <- read.csv("combined_data_IBM_totalcounts.csv", header=TRUE)
 
 
@@ -35,15 +45,666 @@ colnames(IBM) <- c("TRBV", "TRBJ", 'count', "Frequency")
 # Convert TRBV and TRBJ to factors
 IBM$TRBV <- as.factor(IBM$TRBV)
 IBM$TRBJ <- as.factor(IBM$TRBJ)
+IBM$cloneCount <- as.numeric(IBM$Count)
 IBM$Frequency <- as.numeric(IBM$Frequency)
 
 # Create cityscape plot
 
-IBM <- cloud(Frequency ~ TRBV * TRBJ, data = IBM, xbase=0.4, ybase=0.4,col = "red", 
+IBM_freq <- cloud(Frequency ~ TRBV * TRBJ, data = IBM1, xbase=0.4, ybase=0.4,col = "red", 
+                   scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                   panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                   main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+IBM_freq
+
+IBM_count <- cloud(Count ~ TRBV * TRBJ, data = IBM, xbase=0.4, ybase=0.4,col = "red", 
+                    scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                    panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                    main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "count", names.arg = FALSE, zlim = c(0, 30000))
+IBM_count
+
+
+
+##cityscrape plots for individual patients
+
+###IBM1###
+
+#read in csv file
+IBM1 <- read.csv("IBM01.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM1$TRBV <- as.factor(IBM1$TRBV)
+IBM1$TRBJ <- as.factor(IBM1$TRBJ)
+IBM1$cloneCount <- as.numeric(IBM1$cloneCount)
+IBM1$Frequency <- as.numeric(IBM1$Frequency)
+
+
+IBM1_freq <- cloud(Frequency ~ TRBV * TRBJ, data = IBM1, xbase=0.4, ybase=0.4,col = "red", 
             scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
             panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
             main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
-print(IBM)
+IBM1_freq
+
+IBM1_count <- cloud(cloneCount ~ TRBV * TRBJ, data = IBM1, xbase=0.4, ybase=0.4,col = "red", 
+              scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+              panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+              main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "count", names.arg = FALSE, zlim = c(0, 20000))
+IBM1_count
+
+
+###IBM2###
+
+#read in csv file
+IBM2 <- read.csv("IBM02.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM2$TRBV <- as.factor(IBM2$TRBV)
+IBM2$TRBJ <- as.factor(IBM2$TRBJ)
+IBM2$cloneCount <- as.numeric(IBM2$cloneCount)
+IBM2$Frequency <- as.numeric(IBM2$Frequency)
+
+
+IBM2_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM2, xbase=0.4, ybase=0.4,col = "red", 
+                   scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                   panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                   main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM2_freq
+
+IBM2_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM2, xbase=0.4, ybase=0.4,col = "red", 
+                    scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                    panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                    main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM2_count
+
+
+
+###IBM3###
+
+#read in csv file
+IBM3 <- read.csv("IBM03.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM3$TRBV <- as.factor(IBM3$TRBV)
+IBM3$TRBJ <- as.factor(IBM3$TRBJ)
+IBM3$cloneCount <- as.numeric(IBM3$cloneCount)
+IBM3$Frequency <- as.numeric(IBM3$Frequency)
+
+
+IBM3_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM3, xbase=0.4, ybase=0.4,col = "red", 
+                   scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                   panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                   main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM3_freq
+
+IBM3_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM3, xbase=0.4, ybase=0.4,col = "red", 
+                    scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                    panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                    main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM3_count
+
+###IBM4###
+
+#read in csv file
+IBM4 <- read.csv("IBM04.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM4$TRBV <- as.factor(IBM4$TRBV)
+IBM4$TRBJ <- as.factor(IBM4$TRBJ)
+IBM4$cloneCount <- as.numeric(IBM4$cloneCount)
+IBM4$Frequency <- as.numeric(IBM4$Frequency)
+
+
+IBM4_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM4, xbase=0.4, ybase=0.4,col = "red", 
+                   scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                   panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                   main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM4_freq
+
+IBM4_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM4, xbase=0.4, ybase=0.4,col = "red", 
+                    scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                    panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                    main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM4_count
+
+###IBM5###
+
+#read in csv file
+IBM5 <- read.csv("IBM05.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM5$TRBV <- as.factor(IBM5$TRBV)
+IBM5$TRBJ <- as.factor(IBM5$TRBJ)
+IBM5$cloneCount <- as.numeric(IBM5$cloneCount)
+IBM5$Frequency <- as.numeric(IBM5$Frequency)
+
+
+IBM5_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM5, xbase=0.4, ybase=0.4,col = "red", 
+                   scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                   panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                   main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM5_freq
+
+IBM5_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM5, xbase=0.4, ybase=0.4,col = "red", 
+                    scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                    panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                    main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM5_count
+
+###IBM6###
+
+#read in csv file
+IBM6 <- read.csv("IBM06.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM6$TRBV <- as.factor(IBM6$TRBV)
+IBM6$TRBJ <- as.factor(IBM6$TRBJ)
+IBM6$cloneCount <- as.numeric(IBM6$cloneCount)
+IBM6$Frequency <- as.numeric(IBM6$Frequency)
+
+
+IBM6_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM6, xbase=0.4, ybase=0.4,col = "red", 
+                   scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                   panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                   main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM6_freq
+
+IBM6_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM6, xbase=0.4, ybase=0.4,col = "red", 
+                    scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                    panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                    main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM6_count
+
+###IBM7###
+
+#read in csv file
+IBM7 <- read.csv("IBM07.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM7$TRBV <- as.factor(IBM7$TRBV)
+IBM7$TRBJ <- as.factor(IBM7$TRBJ)
+IBM7$cloneCount <- as.numeric(IBM7$cloneCount)
+IBM7$Frequency <- as.numeric(IBM7$Frequency)
+
+
+IBM7_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM7, xbase=0.4, ybase=0.4,col = "red", 
+                   scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                   panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                   main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM7_freq
+
+IBM7_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM7, xbase=0.4, ybase=0.4,col = "red", 
+                    scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                    panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                    main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM7_count
+
+
+
+###IBM8###
+
+#read in csv file
+IBM8 <- read.csv("IBM08.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM8$TRBV <- as.factor(IBM8$TRBV)
+IBM8$TRBJ <- as.factor(IBM8$TRBJ)
+IBM8$cloneCount <- as.numeric(IBM8$cloneCount)
+IBM8$Frequency <- as.numeric(IBM8$Frequency)
+
+
+IBM8_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM8, xbase=0.4, ybase=0.4,col = "red", 
+                   scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                   panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                   main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM8_freq
+
+IBM8_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM8, xbase=0.4, ybase=0.4,col = "red", 
+                    scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                    panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                    main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM8_count
+
+###IBM9###
+
+#read in csv file
+IBM9 <- read.csv("IBM09.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM9$TRBV <- as.factor(IBM9$TRBV)
+IBM9$TRBJ <- as.factor(IBM9$TRBJ)
+IBM9$cloneCount <- as.numeric(IBM9$cloneCount)
+IBM9$Frequency <- as.numeric(IBM9$Frequency)
+
+
+IBM9_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM9, xbase=0.4, ybase=0.4,col = "red", 
+                    scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                    panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                    main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM9_freq
+
+IBM9_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM9, xbase=0.4, ybase=0.4,col = "red", 
+                     scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                     panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                     main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM9_count
+
+###IBM10###
+
+#read in csv file
+IBM10 <- read.csv("IBM10.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM10$TRBV <- as.factor(IBM10$TRBV)
+IBM10$TRBJ <- as.factor(IBM10$TRBJ)
+IBM10$cloneCount <- as.numeric(IBM10$cloneCount)
+IBM10$Frequency <- as.numeric(IBM10$Frequency)
+
+
+IBM10_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM10, xbase=0.4, ybase=0.4,col = "red", 
+              scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+              panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+              main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM10_freq
+
+IBM10_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM10, xbase=0.4, ybase=0.4,col = "red", 
+               scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+               panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+               main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM10_count
+
+###IBM11###
+
+#read in csv file
+IBM11 <- read.csv("IBM11.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM11$TRBV <- as.factor(IBM11$TRBV)
+IBM11$TRBJ <- as.factor(IBM11$TRBJ)
+IBM11$cloneCount <- as.numeric(IBM11$cloneCount)
+IBM11$Frequency <- as.numeric(IBM11$Frequency)
+
+
+IBM11_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM11, xbase=0.4, ybase=0.4,col = "red", 
+               scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+               panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+               main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM11_freq
+
+IBM11_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM11, xbase=0.4, ybase=0.4,col = "red", 
+               scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+               panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+               main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM11_count
+
+###IBM12###
+
+#read in csv file
+IBM12 <- read.csv("IBM12.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM12$TRBV <- as.factor(IBM12$TRBV)
+IBM12$TRBJ <- as.factor(IBM12$TRBJ)
+IBM12$cloneCount <- as.numeric(IBM12$cloneCount)
+IBM12$Frequency <- as.numeric(IBM12$Frequency)
+
+
+IBM12_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM12, xbase=0.4, ybase=0.4,col = "red", 
+               scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+               panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+               main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM12_freq
+
+IBM12_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM12, xbase=0.4, ybase=0.4,col = "red", 
+               scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+               panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+               main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 200000))
+
+IBM12_count
+
+###IBM13###
+
+#read in csv file
+IBM13 <- read.csv("IBM13.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+IBM13$TRBV <- as.factor(IBM13$TRBV)
+IBM13$TRBJ <- as.factor(IBM13$TRBJ)
+IBM13$cloneCount <- as.numeric(IBM13$cloneCount)
+IBM13$Frequency <- as.numeric(IBM13$Frequency)
+
+
+IBM13_freq <- cloud(Frequency~ TRBV * TRBJ, data = IBM13, xbase=0.4, ybase=0.4,col = "red", 
+               scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+               panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+               main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+IBM13_freq
+
+
+IBM13_count <- cloud(cloneCount~ TRBV * TRBJ, data = IBM13, xbase=0.4, ybase=0.4,col = "red", 
+               scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+               panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+               main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+IBM13_count
+
+######individual cityscrape plots for healthy controls
+
+###HC1###
+
+#read in csv file
+H1 <- read.csv("H01.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+H1$TRBV <- as.factor(H1$TRBV)
+H1$TRBJ <- as.factor(H1$TRBJ)
+H1$cloneCount <- as.numeric(H1$cloneCount)
+H1$Frequency <- as.numeric(H1$Frequency)
+
+
+H1_freq <- cloud(Frequency~ TRBV * TRBJ, data = H1, xbase=0.4, ybase=0.4,col = "red", 
+               scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+               panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+               main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 100))
+
+H1_freq
+
+H1_count <- cloud(cloneCount~ TRBV * TRBJ, data = H1, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H1_count
+
+###HC2###
+
+#read in csv file
+H2 <- read.csv("H02.csv", header=TRUE)
+# Convert TRBV and TRBJ to factors
+H2$TRBV <- as.factor(H2$TRBV)
+H2$TRBJ <- as.factor(H2$TRBJ)
+H2$cloneCount <- as.numeric(H2$cloneCount)
+H2$Frequency <- as.numeric(H2$Frequency)
+
+
+H2_Freq <- cloud(Frequency~ TRBV * TRBJ, data = H2, xbase=0.4, ybase=0.4,col = "red", 
+                 scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                 panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                 main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H2_freq
+
+H2_count <- cloud(cloneCount~ TRBV * TRBJ, data = H2, xbase=0.4, ybase=0.4,col = "red", 
+                  scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                  panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                  main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H2_count
+
+
+
+###HC3###
+
+#read in csv file
+H3 <- read.csv("H03.csv", header=TRUE)
+# Convert TRBV and TRBJ to factors
+H3$TRBV <- as.factor(H3$TRBV)
+H3$TRBJ <- as.factor(H3$TRBJ)
+H3$cloneCount <- as.numeric(H3$cloneCount)
+H3$Frequency <- as.numeric(H3$Frequency)
+
+
+H3_Freq <- cloud(Frequency~ TRBV * TRBJ, data = H3, xbase=0.4, ybase=0.4,col = "red", 
+                 scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                 panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                 main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H3_freq
+
+H3_count <- cloud(cloneCount~ TRBV * TRBJ, data = H3, xbase=0.4, ybase=0.4,col = "red", 
+                  scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                  panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                  main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H3_count
+
+###HC4###
+H4 <- read.csv("H04.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+H4$TRBV <- as.factor(H4$TRBV)
+H4$TRBJ <- as.factor(H4$TRBJ)
+H4$cloneCount <- as.numeric(H4$cloneCount)
+H4$Frequency <- as.numeric(H4$Frequency)
+
+
+H4_Freq <- cloud(Frequency~ TRBV * TRBJ, data = H4, xbase=0.4, ybase=0.4,col = "red", 
+                 scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                 panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                 main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H4_freq
+
+H4_count <- cloud(cloneCount~ TRBV * TRBJ, data = H4, xbase=0.4, ybase=0.4,col = "red", 
+                  scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                  panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                  main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H4_count
+
+###HC5###
+H5 <- read.csv("H05.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+H5$TRBV <- as.factor(H5$TRBV)
+H5$TRBJ <- as.factor(H5$TRBJ)
+H5$cloneCount <- as.numeric(H5$cloneCount)
+H5$Frequency <- as.numeric(H5$Frequency)
+
+
+H5_Freq <- cloud(Frequency~ TRBV * TRBJ, data = H5, xbase=0.4, ybase=0.4,col = "red", 
+                 scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                 panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                 main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H5_freq
+
+H5_count <- cloud(cloneCount~ TRBV * TRBJ, data = H5, xbase=0.4, ybase=0.4,col = "red", 
+                  scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                  panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                  main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H5_count
+
+###HC6###
+H6 <- read.csv("H06.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+H6$TRBV <- as.factor(H6$TRBV)
+H6$TRBJ <- as.factor(H6$TRBJ)
+H6$cloneCount <- as.numeric(H6$cloneCount)
+H6$Frequency <- as.numeric(H6$Frequency)
+
+
+H6_Freq <- cloud(Frequency~ TRBV * TRBJ, data = H6, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H6_freq
+
+H6_count <- cloud(cloneCount~ TRBV * TRBJ, data = H6, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H6_count
+
+###HC7###
+H7 <- read.csv("H07.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+H7$TRBV <- as.factor(H7$TRBV)
+H7$TRBJ <- as.factor(H7$TRBJ)
+H7$cloneCount <- as.numeric(H7$cloneCount)
+H7$Frequency <- as.numeric(H7$Frequency)
+
+
+H7_freq <- cloud(Frequency~ TRBV * TRBJ, data = H7, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H7_freq
+
+H7_count <- cloud(cloneCount~ TRBV * TRBJ, data = H7, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H7_count
+
+###HC8###
+H8 <- read.csv("H8.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+H8$TRBV <- as.factor(H8$TRBV)
+H8$TRBJ <- as.factor(H8$TRBJ)
+H8$cloneCount <- as.numeric(H8$cloneCount)
+H8$Frequency <- as.numeric(H8$Frequency)
+
+
+H8_freq <- cloud(Frequency~ TRBV * TRBJ, data = H8, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H8_freq
+
+
+
+H8_count <- cloud(cloneCount~ TRBV * TRBJ, data = H8, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H8_count
+
+
+###HC9###
+H9 <- read.csv("H09.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+H9$TRBV <- as.factor(H9$TRBV)
+H9$TRBJ <- as.factor(H9$TRBJ)
+H9$cloneCount <- as.numeric(H9$cloneCount)
+H9$Frequency <- as.numeric(H9$Frequency)
+
+
+H9_freq <- cloud(Frequency~ TRBV * TRBJ, data = H9, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H9_freq
+
+H9_count <- cloud(clone_count~ TRBV * TRBJ, data = H9, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H9_count
+
+###HC10###
+H10 <- read.csv("H10.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+H10$TRBV <- as.factor(H10$TRBV)
+H10$TRBJ <- as.factor(H10$TRBJ)
+H10$cloneCount <- as.numeric(H10$cloneCount)
+H10$Frequency <- as.numeric(H10$Frequency)
+
+
+H10_freq <- cloud(Frequency~ TRBV * TRBJ, data = H10, xbase=0.4, ybase=0.4,col = "red", 
+            scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+            panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+            main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H10_freq
+
+H10_count <- cloud(cloneCount~ TRBV * TRBJ, data = H10, xbase=0.4, ybase=0.4,col = "red", 
+             scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+             panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+             main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H10_count
+
+###HC11###
+H11 <- read.csv("H11.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+H11$TRBV <- as.factor(H11$TRBV)
+H11$TRBJ <- as.factor(H11$TRBJ)
+H11$cloneCount <- as.numeric(H11$cloneCount)
+H11$Frequency <- as.numeric(H11$Frequency)
+
+
+H11_freq <- cloud(Frequency~ TRBV * TRBJ, data = H11, xbase=0.4, ybase=0.4,col = "red", 
+             scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+             panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+             main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H11_freq
+
+H11_count<- cloud(cloneCount~ TRBV * TRBJ, data = H11, xbase=0.4, ybase=0.4,col = "red", 
+                  scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+                  panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+                  main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
+
+H11_count
+
+
+###HC12###
+H12 <- read.csv("H12.csv", header=TRUE)
+
+# Convert TRBV and TRBJ to factors
+H12$TRBV <- as.factor(H12$TRBV)
+H12$TRBJ <- as.factor(H12$TRBJ)
+H12$cloneCount <- as.numeric(H12$cloneCount)
+H12$Frequency <- as.numeric(H12$Frequency)
+
+
+H12_freq <- cloud(Frequency~ TRBV * TRBJ, data = H12, xbase=0.4, ybase=0.4,col = "red", 
+             scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+             panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+             main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 10))
+
+H12_freq
+
+H12_count <- cloud(cloneCount~ TRBV * TRBJ, data = H12, xbase=0.4, ybase=0.4,col = "red", 
+             scales = list(arrows = FALSE, col=1, tck=1.5,draw=FALSE),par.settings = list(axis.line = list(col = "transparent")), 
+             panel.3d.cloud = panel.3dbars, col.facet = 'red', aspect=c(0.4,0.4), 
+             main = "3D Cityscape Plot", xlab = "TRBV", ylab = "TRBJ", zlab = "%", names.arg = FALSE, zlim = c(0, 20000))
 
 
 
