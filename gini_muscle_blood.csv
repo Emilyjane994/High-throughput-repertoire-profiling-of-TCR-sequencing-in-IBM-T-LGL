@@ -1,0 +1,9 @@
+Subject,gini_muscle_blood,Status,T-LGL status
+IBM12b,0.938907522,blood,Pos
+IBM12m,0.764640168,muscle,Pos
+IBM13b,0.87142607,blood,Pos
+IBM13m,0.681019675,muscle,Pos
+IBM14m,0.737304639,muscle,Pos
+IBM15m,0.622562505,muscle,Neg
+IBM16m,0.776385053,muscle,Neg
+IBM17m,0.732344566,muscle,Neg
