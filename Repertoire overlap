@@ -1,0 +1,396 @@
+# Load necessary libraries
+library(pheatmap)
+library(dplyr)
+library(tidyverse)
+
+
+
+
+###ALL CLONES HC, IBM, Muscle####
+
+# Set the directory where your CSV files are located
+directory_path <- "C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TCRB IBM_HC renamed/cleaned/IBM HC muscle"
+
+# List all CSV files in the directory
+csv_files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
+
+# Function to read CSV files and extract the first 10 rows
+read_and_extract <- function(file) {
+  df <- read.csv(file)
+  # Filter rows to remove those where 'CDR3B' contains '_' or '*'
+  df_filtered <- df[!grepl("_|\\*", df$CDR3B), ]
+  # Remove duplicates based on the 'CDR3B' column after filtering
+  df_distinct <- df_filtered %>% distinct(CDR3B, .keep_all = TRUE)
+  return(df_distinct[c("Sample", "CDR3B")])  # Select only "Sample" and "CDR3B" columns
+}
+
+
+# Read and extract first 10 rows of "Sample" and "CDR3B" columns from each CSV file into a list
+list_of_dataframes <- lapply(csv_files, read_and_extract)
+
+# Merge all dataframes into a single dataframe
+merged_dataframe <- do.call(rbind, list_of_dataframes)
+
+
+
+
+matching_counts <- matrix(0, nrow = length(list_of_dataframes), ncol = length(list_of_dataframes))
+rownames(matching_counts) <- colnames(matching_counts) <- sapply(list_of_dataframes, function(df) df$Sample[1])
+
+for (i in seq_along(list_of_dataframes)) {
+  for (j in seq(i, length(list_of_dataframes))) {
+    if (i != j) {
+      count <- sum(list_of_dataframes[[i]]$CDR3B %in% list_of_dataframes[[j]]$CDR3B)
+      matching_counts[i, j] <- count
+      matching_counts[j, i] <- count  # Ensure symmetry
+    } else {
+      matching_counts[i, j] <- NA  # Set diagonal to NA
+    }
+  }
+}
+
+
+# Create a custom color palette using colorRampPalette
+custom_palette <- colorRampPalette(c( "white","blue", "red"))(100)
+
+# Create a heatmap with pheatmap without dendrograms and display numbers
+pheatmap(matching_counts,
+         color = custom_palette, # use the custom color palette
+         na_col = "grey", # color for NA values
+         cluster_rows = FALSE, # do not cluster rows
+         cluster_cols = FALSE, # do not cluster columns
+         show_rownames = T, # show row names
+         show_colnames = T, # show column names
+         fontsize = 6, # adjust font size as necessary
+         fontsize_row = 6, # adjust row font size as necessary
+         fontsize_col = 8, # adjust column font size as necessary
+         cellwidth = 12, # adjust cell width as necessary
+         cellheight = 12, # adjust cell height as necessary
+         main = "Repertoire overlap", # title of the heatmap
+         border_color = NA, # no borders around cells
+         display_numbers = matching_counts, # matrix with numbers to display
+         number_color = "black", # color for the numbers
+         number_cex = 0.5 # size of the numbers; adjust as necessary
+)
+
+#####TOP 10 Clones#####
+
+# Set the directory where your CSV files are located
+directory_path <- "C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TCRB IBM_HC renamed/cleaned/IBM HC muscle"
+
+# List all CSV files in the directory
+csv_files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
+
+
+
+# Function to read CSV files and extract the first 10 rows
+
+# Function to read CSV files and extract the first 10 rows
+read_and_extract <- function(file) {
+  df <- read.csv(file)
+  # Filter rows to remove those where 'CDR3B' contains '_' or '*'
+  df_filtered <- df[!grepl("_|\\*", df$CDR3B), ]
+  # Remove duplicates based on the 'CDR3B' column after filtering
+  df_distinct <- df_filtered %>% distinct(CDR3B, .keep_all = TRUE)
+  return(df_distinct[1:10,c("Sample", "CDR3B")])  # Select only "Sample" and "CDR3B" columns
+}
+
+
+
+# Read and extract first 10 rows of "Sample" and "CDR3B" columns from each CSV file into a list
+list_of_dataframes <- lapply(csv_files, read_and_extract)
+
+# Merge all dataframes into a single dataframe
+merged_dataframe <- do.call(rbind, list_of_dataframes)
+
+
+# Calculate the number of matching CDR3B amino acid sequences between each pair of samples
+matching_counts <- matrix(NA, nrow = length(csv_files), ncol = length(csv_files))
+rownames(matching_counts) <- colnames(matching_counts) <- basename(csv_files)
+
+for (i in seq_along(list_of_dataframes)) {
+  for (j in seq_along(list_of_dataframes)) {
+    matching_counts[i, j] <- sum(list_of_dataframes[[i]]$CDR3B %in% list_of_dataframes[[j]]$CDR3B)
+  }
+}
+
+
+# Create a custom color palette using colorRampPalette
+custom_palette <- colorRampPalette(c( "white","blue", "black"))(100)
+
+# Create a heatmap with pheatmap without dendrograms and display numbers
+pheatmap(matching_counts,
+         color = custom_palette, # use the custom color palette
+         na_col = "grey", # color for NA values
+         cluster_rows = FALSE, # do not cluster rows
+         cluster_cols = FALSE, # do not cluster columns
+         show_rownames = T, # show row names
+         show_colnames = T, # show column names
+         fontsize = 8, # adjust font size as necessary
+         fontsize_row = 8, # adjust row font size as necessary
+         fontsize_col = 8, # adjust column font size as necessary
+         cellwidth = 10, # adjust cell width as necessary
+         cellheight = 10, # adjust cell height as necessary
+         main = "Repertoire overlap", # title of the heatmap
+         border_color = NA, # no borders around cells
+         display_numbers = matching_counts, # matrix with numbers to display
+         number_color = "black", # color for the numbers
+         number_cex = 0.8 # size of the numbers; adjust as necessary
+)
+
+
+#####TOP 10 Clones CD57 pos and neg#####
+
+# Set the directory where your CSV files are located
+directory_path <- "C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TRB IBM Garvan patients/all CD57 pops"
+
+# List all CSV files in the directory
+csv_files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
+
+# Function to read CSV files and extract the first 10 rows
+read_and_extract <- function(file) {
+  df <- read.csv(file)
+  # Filter rows to remove those where 'CDR3B' contains '_' or '*'
+  df_filtered <- df[!grepl("_|\\*", df$CDR3), ]
+  # Remove duplicates based on the 'CDR3B' column after filtering
+  df_distinct <- df_filtered %>% distinct(CDR3, .keep_all = TRUE)
+  return(df_distinct[1:10,c("Subject", "CDR3")])  # Select only "Sample" and "CDR3B" columns
+}
+
+
+
+# Read and extract first 10 rows of "Sample" and "CDR3B" columns from each CSV file into a list
+list_of_dataframes <- lapply(csv_files, read_and_extract)
+
+# Merge all dataframes into a single dataframe
+merged_dataframe <- do.call(rbind, list_of_dataframes)
+
+
+# Calculate the number of matching CDR3B amino acid sequences between each pair of samples
+matching_counts <- matrix(NA, nrow = length(csv_files), ncol = length(csv_files))
+rownames(matching_counts) <- colnames(matching_counts) <- basename(csv_files)
+
+for (i in seq_along(list_of_dataframes)) {
+  for (j in seq_along(list_of_dataframes)) {
+    matching_counts[i, j] <- sum(list_of_dataframes[[i]]$CDR3 %in% list_of_dataframes[[j]]$CDR3)
+  }
+}
+
+
+# Create a custom color palette using colorRampPalette
+custom_palette <- colorRampPalette(c( "white","blue", "black"))(100)
+
+# Create a heatmap with pheatmap without dendrograms and display numbers
+pheatmap(matching_counts,
+         color = custom_palette, # use the custom color palette
+         na_col = "grey", # color for NA values
+         cluster_rows = FALSE, # do not cluster rows
+         cluster_cols = FALSE, # do not cluster columns
+         show_rownames = T, # show row names
+         show_colnames = T, # show column names
+         fontsize = 8, # adjust font size as necessary
+         fontsize_row = 8, # adjust row font size as necessary
+         fontsize_col = 8, # adjust column font size as necessary
+         cellwidth = 10, # adjust cell width as necessary
+         cellheight = 10, # adjust cell height as necessary
+         main = "Repertoire overlap", # title of the heatmap
+         border_color = NA, # no borders around cells
+         display_numbers = matching_counts, # matrix with numbers to display
+         number_color = "black", # color for the numbers
+         number_cex = 0.8 # size of the numbers; adjust as necessary
+)
+
+
+#top 10 clones muscle and blood 
+
+# Set the directory where your CSV files are located
+directory_path <- "C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TCRB muscle and blood/CSV for repertoire overlap muscle and blood"
+
+# List all CSV files in the directory
+csv_files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
+
+# Function to read CSV files and extract the first 10 rows
+read_and_extract <- function(file) {
+  df <- read.csv(file)
+  # Filter rows to remove those where 'CDR3B' contains '_' or '*'
+  df_filtered <- df[!grepl("_|\\*", df$CDR3), ]
+  # Remove duplicates based on the 'CDR3B' column after filtering
+  df_distinct <- df_filtered %>% distinct(CDR3, .keep_all = TRUE)
+  return(df_distinct[1:10,c("Subject", "CDR3")])  # Select only "Sample" and "CDR3B" columns
+}
+
+
+# Read and extract first 10 rows of "Sample" and "CDR3B" columns from each CSV file into a list
+list_of_dataframes <- lapply(csv_files, read_and_extract)
+
+# Merge all dataframes into a single dataframe
+merged_dataframe <- do.call(rbind, list_of_dataframes)
+
+
+# Calculate the number of matching CDR3B amino acid sequences between each pair of samples
+matching_counts <- matrix(NA, nrow = length(csv_files), ncol = length(csv_files))
+rownames(matching_counts) <- colnames(matching_counts) <- basename(csv_files)
+
+for (i in seq_along(list_of_dataframes)) {
+  for (j in seq_along(list_of_dataframes)) {
+    matching_counts[i, j] <- sum(list_of_dataframes[[i]]$CDR3 %in% list_of_dataframes[[j]]$CDR3)
+  }
+}
+
+
+# Create a custom color palette using colorRampPalette
+custom_palette <- colorRampPalette(c( "white","blue", "black"))(100)
+
+# Create a heatmap with pheatmap without dendrograms and display numbers
+pheatmap(matching_counts,
+         color = custom_palette, # use the custom color palette
+         na_col = "grey", # color for NA values
+         cluster_rows = FALSE, # do not cluster rows
+         cluster_cols = FALSE, # do not cluster columns
+         show_rownames = T, # show row names
+         show_colnames = T, # show column names
+         fontsize = 8, # adjust font size as necessary
+         fontsize_row = 8, # adjust row font size as necessary
+         fontsize_col = 8, # adjust column font size as necessary
+         cellwidth = 10, # adjust cell width as necessary
+         cellheight = 10, # adjust cell height as necessary
+         main = "Repertoire overlap", # title of the heatmap
+         border_color = NA, # no borders around cells
+         display_numbers = matching_counts, # matrix with numbers to display
+         number_color = "black", # color for the numbers
+         number_cex = 0.8 # size of the numbers; adjust as necessary
+)
+
+
+#top 10 clones muscle T-LGL high and low
+
+# Set the directory where your CSV files are located
+directory_path <- "C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TCRB muscle and blood/csv for repertoire overlap T-LGLhigh and low"
+
+# List all CSV files in the directory
+csv_files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
+
+# Function to read CSV files and extract the first 10 rows
+read_and_extract <- function(file) {
+  df <- read.csv(file)
+  # Filter rows to remove those where 'CDR3B' contains '_' or '*'
+  df_filtered <- df[!grepl("_|\\*", df$CDR3), ]
+  # Remove duplicates based on the 'CDR3B' column after filtering
+  df_distinct <- df_filtered %>% distinct(CDR3, .keep_all = TRUE)
+  return(df_distinct[1:10,c("Subject", "CDR3")])  # Select only "Sample" and "CDR3B" columns
+}
+
+
+# Read and extract first 10 rows of "Sample" and "CDR3B" columns from each CSV file into a list
+list_of_dataframes <- lapply(csv_files, read_and_extract)
+
+# Merge all dataframes into a single dataframe
+merged_dataframe <- do.call(rbind, list_of_dataframes)
+
+
+# Calculate the number of matching CDR3B amino acid sequences between each pair of samples
+matching_counts <- matrix(NA, nrow = length(csv_files), ncol = length(csv_files))
+rownames(matching_counts) <- colnames(matching_counts) <- basename(csv_files)
+
+for (i in seq_along(list_of_dataframes)) {
+  for (j in seq_along(list_of_dataframes)) {
+    matching_counts[i, j] <- sum(list_of_dataframes[[i]]$CDR3 %in% list_of_dataframes[[j]]$CDR3)
+  }
+}
+
+
+# Create a custom color palette using colorRampPalette
+custom_palette <- colorRampPalette(c( "white","blue", "black"))(100)
+
+# Create a heatmap with pheatmap without dendrograms and display numbers
+pheatmap(matching_counts,
+         color = custom_palette, # use the custom color palette
+         na_col = "grey", # color for NA values
+         cluster_rows = FALSE, # do not cluster rows
+         cluster_cols = FALSE, # do not cluster columns
+         show_rownames = T, # show row names
+         show_colnames = T, # show column names
+         fontsize = 8, # adjust font size as necessary
+         fontsize_row = 8, # adjust row font size as necessary
+         fontsize_col = 8, # adjust column font size as necessary
+         cellwidth = 10, # adjust cell width as necessary
+         cellheight = 10, # adjust cell height as necessary
+         main = "Repertoire overlap", # title of the heatmap
+         border_color = NA, # no borders around cells
+         display_numbers = matching_counts, # matrix with numbers to display
+         number_color = "black", # color for the numbers
+         number_cex = 0.8 # size of the numbers; adjust as necessary
+)
+
+
+
+
+
+
+
+#all clones muscle T-LGL high and low
+
+# Set the directory where your CSV files are located
+directory_path <- "C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TCRB muscle and blood/csv for repertoire overlap T-LGLhigh and low"
+
+# List all CSV files in the directory
+csv_files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
+
+# Function to read CSV files and extract the first 10 rows
+read_and_extract <- function(file) {
+  df <- read.csv(file)
+  # Filter rows to remove those where 'CDR3B' contains '_' or '*'
+  df_filtered <- df[!grepl("_|\\*", df$CDR3), ] 
+  # Remove duplicates based on the 'CDR3B' column after filtering
+  df_distinct <- df_filtered %>% distinct(CDR3, .keep_all = TRUE)
+  return(df_distinct[c("Subject", "CDR3")])  # Select only "Sample" and "CDR3B" columns
+}
+
+
+# Read and extract first 10 rows of "Sample" and "CDR3B" columns from each CSV file into a list
+list_of_dataframes <- lapply(csv_files, read_and_extract)
+
+# Merge all dataframes into a single dataframe
+merged_dataframe <- do.call(rbind, list_of_dataframes)
+
+
+
+
+matching_counts <- matrix(0, nrow = length(list_of_dataframes), ncol = length(list_of_dataframes))
+rownames(matching_counts) <- colnames(matching_counts) <- sapply(list_of_dataframes, function(df) df$Subject[1])
+
+for (i in seq_along(list_of_dataframes)) {
+  for (j in seq(i, length(list_of_dataframes))) {
+    if (i != j) {
+      count <- sum(list_of_dataframes[[i]]$CDR3 %in% list_of_dataframes[[j]]$CDR3)
+      matching_counts[i, j] <- count
+      matching_counts[j, i] <- count  # Ensure symmetry
+    } else {
+      matching_counts[i, j] <- NA  # Set diagonal to NA
+    }
+  }
+}
+
+
+# Create a custom color palette using colorRampPalette
+custom_palette <- colorRampPalette(c( "white","blue", "red"))(100)
+
+# Create a heatmap with pheatmap without dendrograms and display numbers
+pheatmap(matching_counts,
+         color = custom_palette, # use the custom color palette
+         na_col = "grey", # color for NA values
+         cluster_rows = FALSE, # do not cluster rows
+         cluster_cols = FALSE, # do not cluster columns
+         show_rownames = T, # show row names
+         show_colnames = T, # show column names
+         fontsize = 10,# adjust font size as necessary
+         fontsize_row = 10,# adjust row font size as necessary
+         fontsize_col =10,# adjust column font size as necessary
+         cellwidth =50,# adjust cell width as necessary
+         cellheight = 50, # adjust cell height as necessary
+         main = "Repertoire overlap", # title of the heatmap
+         border_color = NA, # no borders around cells
+         display_numbers = matching_counts, # matrix with numbers to display
+         number_color = "black", # color for the numbers
+         number_cex = 0.5 # size of the numbers; adjust as necessary
+)
