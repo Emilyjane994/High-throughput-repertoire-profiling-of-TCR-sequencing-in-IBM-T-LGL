@@ -1,32 +1,128 @@
 
+
 #Install required Packages 
+
+###TCR repertoire analysis of Garvan 2019 Data 
 
 install.packages(c("devtools", "pkgload"))
 install.packages("htmltools")
 devtools::install_github("immunomind/immunarch", ref="dev")
 devtools::reload(pkgload::inst("immunarch"))
+install.packages("circlize")
 install.packages("ggstatsplot")
 install.packages("remotes")
 remotes::install_github("HetzDra/turboGliph")
-
+install.packages("latticeExtra")
 
 #Load in Libraries 
 library(immunarch)
+library(turboGliph)
 library(readr)
+library(circlize)
 library(ggplot2)
 library(ggstatsplot)
 library(ggseqlogo)
 library(dplyr)
 library(stringr)
+library(latticeExtra)
+library(tidyverse)
+library(ggplot2)
+library(ggstatsplot)
+
+ 
 
 
-####Load in IBM Peripheral blood samples### 
+#Load in IBM Peripheral blood samples 
 
-immdata <- repLoad("PATH TO FILES") 
+immdata <- repLoad("C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TCRB IBM_HC renamed/immdat_IBM vs HCupdated")
 
 #Determine clonality of CD8CD57+ TCRB repertoire 
 exp_vol <- repExplore(immdata$data, .method = "volume")
 vis(exp_vol, .by ="Status", .meta = immdata$meta )
+
+
+imm_pr <- repClonality(immdata$data, .method = "clonal.prop")
+vis(imm_pr, .by ="Status", .meta = immdata$meta )
+
+#save exp_volume as a dataframe 
+exp_vol <- as.data.frame(exp_vol)
+exp_vol
+#load in data for repertoire volume
+exp_vol_graph<- read.csv("Repetroite volume HC_IBM.csv",header = TRUE) 
+
+exp_vol_graph$Group <- ifelse(grepl("^IBM", exp_vol_graph$Group), "IBM", "HC")
+
+######perform shapiro-wilk test####
+#we performed the shapiro-wilk test to determine if the populations are normally distributed. this helps when selecting which statistical test to perform.
+
+# Subset data for each group
+hc_data <- exp_vol_graph$Volume[exp_vol_graph$Group == 'HC']
+ibm_data <- exp_vol_graph$Volume[exp_vol_graph$Group == 'IBM']
+
+# Perform the Shapiro-Wilk test
+shapiro_test_hc <- shapiro.test(hc_data)
+shapiro_test_ibm <- shapiro.test(ibm_data)
+
+# Print the results
+print(shapiro_test_hc)
+print(shapiro_test_ibm)
+
+#The Shapiro-Wilk test results for the clonal volume are:
+
+#HC Group: Statistic: 0.753, P-value: 0.0029
+#IBM Group:Statistic: 0.932, P-value: 0.357
+
+# Plot with corrected aesthetics
+
+# Calculate summary data
+summary_data <- exp_vol %>%
+  group_by(Group) %>%
+  summarise(
+    median_volume = median(Volume),
+    lower_iqr = quantile(Volume, 0.05),
+    upper_iqr = quantile(Volume, 0.95),
+    .groups = 'drop'  # Drop grouping for easy use in ggplot
+  )
+
+# Plot
+ggplot(exp_vol, aes(x = Group, y = Volume, fill = Group)) +
+  geom_boxplot() +
+  geom_pointrange(data = summary_data, aes(x = Group, y = median_volume, ymin = lower_iqr, ymax = upper_iqr),
+                  color = "black", fatten = 2, size = 0.5) +
+  labs(title = "Boxplot of Clonotype Volume by Group",
+       x = "Group",
+       y = "Volume") +
+  scale_fill_manual(values = c("IBM" = "indianred", "HC" = "royalblue")) +
+  scale_y_continuous(limits = c(0, 10000), breaks = seq(0, 10000, by = 2500)) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(color = "black", size = 0.5),
+    axis.text.x = element_text(margin = margin(t = 0)),
+    axis.text.y = element_text(margin = margin(r = 0)),
+    axis.title.x = element_text(margin = margin(t = 0)),
+    axis.title.y = element_text(margin = margin(r = 0))
+  )
+
+
+
+# Conduct Wilcoxon rank-sum test using ggbetweenstats
+ggbetweenstats(
+  data = exp_vol_graph,  # make sure your data frame is correctly named
+  x = 'Group',           # the grouping variable
+  y = 'Volume',          # the numeric variable
+  title = "Boxplot of Volume by Group",
+  xlab = "Group",
+  ylab = "Volume",
+  plot.type = "box",     # changed to 'box' to correctly depict a boxplot
+  conf.level = 0.95,
+  messages = FALSE,
+  type = "nonparametric"            # correct parameter to ensure nonparametric test
+)
+
+###Rep Clonality
 
 imm_hom <- repClonality(immdata$data,
                         .method = "homeo",
@@ -36,27 +132,58 @@ vis(imm_hom,.by="Status", .meta = immdata$meta)
 
 imm_top <- repClonality(immdata$data, .method = "top", .head = c(10, 100, 1000, 3000, 10000))
 vis(imm_top, .by = "Status", .meta = immdata$meta)
+vis(imm_top)
+
+imm_pr <- repClonality(immdata$data, .method = "clonal.prop")
+imm_pr
+
+#gene usage
+imm_gene <- geneUsage(immdata$data, "hs.trbv",.norm=T)
+p4 <- vis(imm_gene, .by = "Status", .meta = immdata$meta)
+p4
 
 #length of CDR3
-# Set the directory where your CSV files are located
-directory_path <- "working directory"
 
+exp_len <- repExplore(immdata$data, .method = "len", .col = "aa")
+p1 <- vis(exp_len, .by = "Status", .meta = immdata$meta)
+exp_cnt <- repExplore(immdata$data, .method = "count")
+exp_vol <- repExplore(immdata$data, .method = "volume")
+
+p1 <- vis(exp_len)
+p2 <- vis(exp_cnt)
+p3 <- vis(exp_vol)
+p1
+
+# Adjust Y-axis range to go from 0 to 1 with increments of 0.1
+p1 <- p1 + scale_x_continuous(limits = c(0, 30), breaks = seq(0, 30, 5))
+
+# Print the modified plot
+print(p1)
+
+
+#the CDR3 length may be better if done manually######
+
+# Set the directory where your CSV files are located
+directory_path <- "C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TCRB IBM_HC renamed/cleaned"
 # List all CSV files in the directory
 csv_files <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
 
 # Read all CSV files into a list
 list_of_dataframes <- lapply(csv_files, read.csv)
 
-# Create a new list with selected data frames
+
+# Create a new list with selected dataframes
 all_samples <- list_of_dataframes
 
-# Merge all data frames into a single data frame
+# Merge all dataframes into a single dataframe
 merged_dataframe <- bind_rows(all_samples)
 
+
 # Extract relevant columns
-CDR3 <- merged_dataframe[, c("readCount", "Length.CDR3", "Sample")]
+CDR3 <- merged_dataframe[, c("cloneCount", "Length.CDR3", "Sample")]
 
 CDR3$Sample <- as.factor(CDR3$Sample)
+
 
 # Define grouping based on Sample names
 CDR3 <- CDR3 %>%
@@ -65,14 +192,21 @@ CDR3 <- CDR3 %>%
     str_detect(Sample, "^IBM\\d+$") ~ "IBM")) %>%
   filter(Length.CDR3 <= 30)
 
+# Count the number of unique groups
+number_of_groups <- CDR3 %>%
+  distinct(Grouped_Sample) %>%
+  nrow()  # This will count the rows of distinct 'Grouped_Sample' entries
+
+number_of_groups
+
 # Create a plot for CDR3 Length
 
-ggplot(CDR3, aes(x = Length.CDR3, y = readCount, fill = Grouped_Sample)) +
+ggplot(CDR3, aes(x = Length.CDR3, y = cloneCount, fill = Grouped_Sample)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "CDR3 Length vs Count",
        x = "CDR3 Length",
        y = "Count") +
-  scale_fill_manual(values = c("IBM" = "royalblue", "HC" = "indianred")) +
+  scale_fill_manual(values = c("IBM" = "indianred", "HC" = "royalblue")) +
   scale_x_continuous(breaks = seq(0, 30, by = 5)) +  # Set x-axis breaks from 0 to 30 in increments of 5
   scale_y_continuous(breaks = seq(0, 35000, by = 5000)) +  # Set y-axis breaks from 0 to 35000 in increments of 5000
   theme_minimal() +
@@ -80,41 +214,13 @@ ggplot(CDR3, aes(x = Length.CDR3, y = readCount, fill = Grouped_Sample)) +
     panel.grid.major = element_blank(),  # Remove major gridlines
     panel.grid.minor = element_blank(),  # Remove minor gridlines
     panel.border = element_blank(),       # Remove panel border
-    axis.line = element_line(color = "black", size = 1.5),  # Bold X and Y axis lines
+    axis.line = element_line(color = "black", size = 0.75),  # Bold X and Y axis lines
     axis.text.x = element_text(margin = margin(t = 0), face = "bold"),  # Bold X axis text
     axis.text.y = element_text(margin = margin(r = 0), face = "bold"),  # Bold Y axis text
     axis.title.x = element_text(margin = margin(t = 0), face = "bold"),  # Bold X axis title
     axis.title.y = element_text(margin = margin(r = 0), face = "bold")   # Bold Y axis title
   )
 
-#repertoire overlap and tracking clonotypes 
-
-public <- repOverlap(immdata$data,.method = "public", .verbose = F)
-vis(public)
-
-trackclonotypes <- trackClonotypes(immdata$data, list("IBM04", 10), .col = "aa")
-p12 <- vis(trackclonotype)
-# Adjust Y-axis range to go from 0 to 1 with increments of 0.1
-p12 <- p12 + scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1))
-# Print the modified plot
-print(p12)
-
-
-#####Repertoire analysis######
-
-repOverlapAnalysis(public, "tsne+kmeans")%>% vis()
-
-imm_gu <- geneUsage(immdata$data, "hs.trbv", .norm = T)
-vis(imm_gu, .by = "Status", .meta = immdata$meta)
-
-imm_cl_pca <- geneUsageAnalysis(imm_gu, "js+pca+kmeans", .verbose = F)
-vis(imm_cl_pca, .plot = "clust")
-
-TSNE <- geneUsageAnalysis(imm_gu, "tsne")
-TSNE%>% vis()
-
-kmeans <- geneUsageAnalysis(imm_gu, "tsne+kmeans",.k=2, .verbose = F)
-kmeans%>% vis()
 
 
 #Diversity Estimation
@@ -135,30 +241,75 @@ div_gini_all
 div_gini_all_df <- data.frame(div_gini_all)
 
 # Save the dataframe to a file (e.g., CSV) with the new column name
-write.csv(div_gini_all_df, file = "immunr_gini_data.csv", row.names = FALSE)
-Gini_index <- read.csv("immunr_gini_data.csv",header = TRUE) 
+write.csv(div_gini_all_df, file = "immunr_gini_data_all.csv", row.names = FALSE)
 
-Gini_index$Group <- ifelse(grepl("^IBM", Gini_index$Subject), "IBM", "HC")
+#load in csv file
+Gini_index <- read.csv("immunr_gini_data_all.csv",header = TRUE) 
+Gini_index$Group <- ifelse(grepl("^IBM", Gini_index$Group), "IBM", "HC")
 
-# Plot with corrected aesthetics
-ggplot(Gini_index, aes(x = Group, y = Gini_index, fill = Group)) +
+######perform shapiro-wilk test####
+#we performed the shapiro-wilk test to determine if the populations are normally distributed. this helps when selecting which statistical test to perform.
+
+# Subset data for each group
+hc_data <- Gini_index$Gini.Index[Gini_index$Group == 'HC']
+ibm_data <- Gini_index$Gini.Index[Gini_index$Group == 'IBM']
+
+# Perform the Shapiro-Wilk test
+shapiro_test_hc <- shapiro.test(hc_data)
+shapiro_test_ibm <- shapiro.test(ibm_data)
+
+# Print the results
+print(shapiro_test_hc)
+print(shapiro_test_ibm)
+
+#The Shapiro-Wilk test results for the updated data are:
+  
+#HC Group:Statistic: 0.836,P-value: 0.025
+#IBM Group:Statistic: 0.61,P-value: 0.8.11x10-5
+
+
+# Calculate summary data
+summary_data <- Gini_index %>%
+  group_by(Group) %>%
+  summarise(
+    median_gini = median(Gini.Index),
+    lower_iqr = quantile(Gini.Index, 0.05),
+    upper_iqr = quantile(Gini.Index, 0.95),
+    .groups = 'drop'  # Drop grouping for easy use in ggplot
+  )
+
+# Plot
+ggplot(Gini_index, aes(x = Group, y =Gini.Index, fill = Group)) +
   geom_boxplot() +
-  labs(title = "Boxplot of Gini Index by Group",
+  geom_pointrange(data = summary_data, aes(x = Group, y = median_gini, ymin = lower_iqr, ymax = upper_iqr),
+                  color = "black", fatten = 2, size = 0.5) +
+  labs(title = "Boxplot of Clonotype Volume by Group",
        x = "Group",
-       y = "Gini Index") +
-  scale_fill_manual(values = c("IBM" = "royalblue", "HC" = "indianred")) +
+       y = "Volume") +
+  scale_fill_manual(values = c("IBM" = "indianred", "HC" = "royalblue")) +
   scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
   theme_minimal() +
   theme(
-    panel.grid.major = element_blank(),  # Remove major gridlines
-    panel.grid.minor = element_blank(),  # Remove minor gridlines
-    panel.border = element_blank(),       # Remove panel border
-    axis.line = element_line(color = "black", size = 0.5),  # Bold X and Y axis lines
-    axis.text.x = element_text(margin = margin(t = 0)),  # Bold X axis text
-    axis.text.y = element_text(margin = margin(r = 0)),  # Bold Y axis text
-    axis.title.x = element_text(margin = margin(t = 0)),  # Bold X axis title
-    axis.title.y = element_text(margin = margin(r = 0))   # Bold Y axis title
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(color = "black", size = 0.5),
+    axis.text.x = element_text(margin = margin(t = 0)),
+    axis.text.y = element_text(margin = margin(r = 0)),
+    axis.title.x = element_text(margin = margin(t = 0)),
+    axis.title.y = element_text(margin = margin(r = 0))
   )
+
+
+gini <- ggstatsplot::ggbetweenstats(
+  data = Gini_index,
+  x = Group,
+  y = Gini.Index,
+  color = Group,
+  title = "gini Index",
+  subtitle = "Grouped by cluster", type="nonparametric")
+
+gini
 
 
 ###########Mapping of CDR3 sequences to known antigen specificities####
@@ -187,16 +338,98 @@ merged_CRG <- merge(vdjdb,IBM_gliph_CRG, by = 'cdr3', all = TRUE)
 merged_CRG <- na.omit(merged_CRG)
 
 
+merged_all <- read.csv("merged.csv", header=TRUE)
+
+merged_all <- merged_all[merged_all$vdjdb.score >= 2, ]
 
 
 
 #######Load in IBM Peripheral blood/muscle samples########## 
 
-immundat2 <- repLoad("PATH")
+immundat2 <- repLoad("C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TCRB muscle and blood/muscle and blood/all blood and muscle")
 
-#Determine clonality of CD8CD57+ TCRB repertoire 
+#Determine clonality of T-LGL groups repertoire 
 exp_vol_blood_muscle <- repExplore(immundat2$data, .method = "volume")
+exp_vol_blood_muscle
 vis(exp_vol_blood_muscle, .by = ("Status"), .meta = immundat2$meta)
+
+exp_vol_blood_muscle
+
+#load in data for repertoire volume
+exp_vol_PBMC_muscle<- read.csv("Repertoire volume PBMC vs Muscle.csv",header = TRUE) 
+
+exp_vol_PBMC_muscle$Group <- ifelse(grepl("^PBMC", exp_vol_PBMC_muscle$Group), "PBMC", "muscle")
+
+######perform shapiro-wilk test####
+#we performed the shapiro-wilk test to determine if the populations are normally distributed. this helps when selecting which statistical test to perform.
+
+# Subset data for each group
+PBMC_data <- exp_vol_PBMC_muscle$Volume[exp_vol_PBMC_muscle$Group == 'PBMC']
+muscle_data <- exp_vol_PBMC_muscle$Volume[exp_vol_PBMC_muscle$Group == 'muscle']
+
+# Perform the Shapiro-Wilk test
+shapiro_test_PBMC <- shapiro.test(PBMC_data)
+shapiro_test_muscle <- shapiro.test(muscle_data)
+
+# Print the results
+print(shapiro_test_PBMC)
+print(shapiro_test_muscle)
+
+#The Shapiro-Wilk test results for the clonal volume are:
+
+#PBMC Group: Statistic: 0.9315, P-value: 0.35
+#muscle Group:Statistic: 0.754, P-value: 0.02
+
+# Plot with corrected aesthetics
+
+# Calculate summary data
+summary_data <- exp_vol_PBMC_muscle %>%
+  group_by(Group) %>%
+  summarise(
+    median_volume = median(Volume),
+    lower_iqr = quantile(Volume, 0.05),
+    upper_iqr = quantile(Volume, 0.95),
+    .groups = 'drop'  # Drop grouping for easy use in ggplot
+  )
+
+# Plot
+ggplot(exp_vol_PBMC_muscle, aes(x = Group, y = Volume, fill = Group)) +
+  geom_boxplot() +
+  geom_pointrange(data = summary_data, aes(x = Group, y = median_volume, ymin = lower_iqr, ymax = upper_iqr),
+                  color = "black", fatten = 2, size = 0.5) +
+  labs(title = "Boxplot of Clonotype Volume by Group",
+       x = "Group",
+       y = "Volume") +
+  scale_fill_manual(values = c("PBMC" = "indianred", "muscle" = "royalblue")) +
+  scale_y_continuous(limits = c(0, 10000), breaks = seq(0, 10000, by = 2500)) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(color = "black", size = 0.5),
+    axis.text.x = element_text(margin = margin(t = 0)),
+    axis.text.y = element_text(margin = margin(r = 0)),
+    axis.title.x = element_text(margin = margin(t = 0)),
+    axis.title.y = element_text(margin = margin(r = 0))
+  )
+
+
+
+# Conduct Wilcoxon rank-sum test using ggbetweenstats
+ggbetweenstats(
+  data = exp_vol_PBMC_muscle,  # make sure your data frame is correctly named
+  x = 'Group',           # the grouping variable
+  y = 'Volume',          # the numeric variable
+  title = "Boxplot of Volume by Group",
+  xlab = "Group",
+  ylab = "Volume",
+  plot.type = "box",     # changed to 'box' to correctly depict a boxplot
+  conf.level = 0.95,
+  messages = FALSE,
+  type = "nonparametric"            # correct parameter to ensure nonparametric test
+)
+
 
 
 imm_hom2 <- repClonality(immundat2$data,
@@ -206,84 +439,202 @@ vis(imm_hom2,.by=("Status"), .meta = immundat2$meta)
 
 
 exp_len2 <- repExplore(immundat2$data, .method = "len", .col = "aa")
-vis(exp_len2, .by = ("Status"), .meta = immundat2$meta)
-
+vis(exp_len2)
+p3 <- vis(exp_len2, .by = ("Status"), .meta = immundat2$meta)
+p3
 
 imm_top2 <- repClonality(immundat2$data, .method = "top", .head = c(10, 100, 1000, 3000, 10000))
 imm_top2
 vis(imm_top2, .by = "Status", .meta = immundat2$meta)
-
+vis(p3)
 
 #gene usage
-imm_gene <- geneUsage(immundat2$data, "hs.trbv", .norm = T)
-vis(imm_gene, .by = "Status", .meta = immdata$meta)
+imm_gene <- geneUsage(immundat2$data, "hs.trbv",.norm=T)
+p4 <- vis(imm_gene, .by = "Status", .meta = immundat2$meta)
+p4
 
-
-
-#repertoire overlap and tracking clonotypes 
-
-public2 <- repOverlap(immundat2$data,.method = "public", .verbose = F)
-vis(public2)
-
-repOverlapAnalysis(public2, "tsne+kmeans")%>% vis()
-
-
-
-
-#clonotype tracking 
-
-tcb <- trackClonotypes(immundat2$data, list("IBM13m", 10), .col = "aa")
-p12 <- vis(tcb)
-# Adjust Y-axis range to go from 0 to 1 with increments of 0.1
-p12 <- p12 + scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1))
-# Print the modified plot
-print(p12)
 
 #Calculate diversity of clonotypes 
 gini_muscle_blood <- repDiversity(immundat2$data, "gini")
-gini_muscle_blood
-gini_muscle_blood_df <- data.frame(gini_muscle_blood)
-# Save the dataframe to a file (e.g., CSV) with the new column name
-write.csv(gini_muscle_blood_df, file = "gini_muscle_blood.csv", row.names = FALSE)
-Gini_index2 <- read.csv("gini_TLGLmuscle2.csv",header = TRUE) 
 
-# plot the gini_index
-ggplot(Gini_index2, aes(x = T.LGL.status, y = gini_muscle_blood, fill=T.LGL.status)) +
+gini_muscle_blood
+
+gini_muscle_blood_df <- data.frame(gini_muscle_blood)
+
+
+#####T-LGL Pos and Neg#######
+TLGL <- repLoad("C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/muscle samples/immunarch")
+
+#Determine clonality of CD8CD57+ TCRB repertoire 
+exp_vol_TLGL<- repExplore(TLGL$data, .method = "volume")
+exp_vol_TLGL
+vis(exp_vol_TLGL, .by = ("Status"), .meta = TLGL$meta)
+
+#load in data for repertoire volume
+exp_vol_TLGLs<- read.csv("Repertoire volume TLGL.csv",header = TRUE) 
+
+exp_vol_TLGLs$Group <- ifelse(grepl("^Pos", exp_vol_TLGLs$Group), "Pos", "Neg")
+
+######perform shapiro-wilk test####
+#we performed the shapiro-wilk test to determine if the populations are normally distributed. this helps when selecting which statistical test to perform.
+
+# Subset data for each group
+Pos_data <- exp_vol_TLGLs$Volume[exp_vol_TLGLs$Group == 'Pos']
+Neg_data <- exp_vol_TLGLs$Volume[exp_vol_TLGLs$Group == 'Neg']
+
+# Perform the Shapiro-Wilk test
+shapiro_test_Pos <- shapiro.test(Pos_data)
+shapiro_test_Neg <- shapiro.test(Neg_data)
+
+# Print the results
+print(shapiro_test_Pos)
+print(shapiro_test_Neg)
+
+#The Shapiro-Wilk test results for the clonal volume are:
+
+#PBMC Group: Statistic: 0.86, P-value: 0.26
+#muscle Group:Statistic: 0.80, P-value: 0.11
+
+# Plot with corrected aesthetics
+
+# Calculate summary data
+summary_data <- exp_vol_TLGLs %>%
+  group_by(Group) %>%
+  summarise(
+    mean_volume = mean(Volume),
+    lower_iqr = quantile(Volume, 0.05),
+    upper_iqr = quantile(Volume, 0.95),
+    .groups = 'drop'  # Drop grouping for easy use in ggplot
+  )
+
+# Plot
+ggplot(exp_vol_TLGLs, aes(x = Group, y = Volume, fill = Group)) +
   geom_boxplot() +
-  labs(title = "Gini Index Distribution between IBM and HC",
-       x = "T.LGL.status",
-       y = "Gini Index")+
-  scale_fill_manual(values = c("Pos" = "royalblue", "Neg" = "indianred")) +
+  geom_pointrange(data = summary_data, aes(x = Group, y = mean_volume, ymin = lower_iqr, ymax = upper_iqr),
+                  color = "black", fatten = 2, size = 0.5) +
+  labs(title = "Boxplot of Clonotype Volume by Group",
+       x = "Group",
+       y = "Volume") +
+  scale_fill_manual(values = c("Pos" = "indianred", 'Neg' = "royalblue")) +
+  scale_y_continuous(limits = c(0, 1000), breaks = seq(0, 1000, by = 250)) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(color = "black", size = 0.5),
+    axis.text.x = element_text(margin = margin(t = 0)),
+    axis.text.y = element_text(margin = margin(r = 0)),
+    axis.title.x = element_text(margin = margin(t = 0)),
+    axis.title.y = element_text(margin = margin(r = 0))
+  )
+
+
+
+# Conduct Wilcoxon rank-sum test using ggbetweenstats
+ggbetweenstats(
+  data = exp_vol_TLGLs,  # make sure your data frame is correctly named
+  x = 'Group',           # the grouping variable
+  y = 'Volume',          # the numeric variable
+  title = "Boxplot of Volume by Group",
+  xlab = "Group",
+  ylab = "Volume",
+  plot.type = "box",     # changed to 'box' to correctly depict a boxplot
+  conf.level = 0.95,
+  messages = FALSE,
+  type = "parametric"            # correct parameter to ensure nonparametric test
+)
+
+
+
+
+#Determine clonality of TLGL muscle repertoire 
+TLGLs <- repExplore(TLGL$data, .method = "volume")
+TLGLs
+vis(TLGLs, .by = ("Status"), .meta = TLGL$meta)
+
+
+#Calculate diversity of clonotypes 
+gini_TLGL <- repDiversity(TLGL$data, "gini")
+gini_TLGL <- as.data.frame(gini_TLGL)
+# Save the dataframe to a file (e.g., CSV) with the new column name
+write.csv(gini_TLGL, file = "gini_TLGLmuscle.csv", row.names = FALSE)
+Gini_index2 <- read.csv("gini_TLGLmuscle.csv",header = TRUE) 
+
+
+######perform shapiro-wilk test####
+#we performed the shapiro-wilk test to determine if the populations are normally distributed. this helps when selecting which statistical test to perform.
+
+# Subset data for each group
+TLGLHIGH_data <- Gini_index2$Gini.Index[Gini_index2$Group == 'Pos']
+TLGLLOW_data <- Gini_index2$Gini.Index[Gini_index2$Group == 'Neg']
+
+# Perform the Shapiro-Wilk test
+shapiro_test_POS <- shapiro.test(TLGLHIGH_data)
+shapiro_test_Neg <- shapiro.test(TLGLLOW_data)
+
+# Print the results
+print(shapiro_test_POS)
+print(shapiro_test_Neg)
+
+#The Shapiro-Wilk test results for the updated data are:
+
+#HC Group:Statistic: 0.962,P-value: 0.6
+#IBM Group:Statistic: 0.942,P-value: 0.5
+
+
+# Calculate summary data
+summary_data <- Gini_index2 %>%
+  group_by(Group) %>%
+  summarise(
+    mean_gini = mean(Gini.Index),
+    lower_iqr = quantile(Gini.Index, 0.05),
+    upper_iqr = quantile(Gini.Index, 0.95),
+    .groups = 'drop'  # Drop grouping for easy use in ggplot
+  )
+
+# Plot
+ggplot(Gini_index2, aes(x = Group, y =Gini.Index, fill = Group)) +
+  geom_boxplot() +
+  geom_pointrange(data = summary_data, aes(x = Group, y = mean_gini, ymin = lower_iqr, ymax = upper_iqr),
+                  color = "black", fatten = 2, size = 0.5) +
+  labs(title = "Boxplot of Clonotype Volume by Group",
+       x = "Group",
+       y = "Volume") +
+  scale_fill_manual(values = c("Pos" = "indianred", "Neg" = "royalblue")) +
   scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
   theme_minimal() +
   theme(
-    panel.grid.major = element_blank(),  # Remove major gridlines
-    panel.grid.minor = element_blank(),  # Remove minor gridlines
-    panel.border = element_blank(),       # Remove panel border
-    axis.line = element_line(color = "black", size = 0.5),  # Bold X and Y axis lines
-    axis.text.x = element_text(margin = margin(t = 0)),  # Bold X axis text
-    axis.text.y = element_text(margin = margin(r = 0)),  # Bold Y axis text
-    axis.title.x = element_text(margin = margin(t = 0)),  # Bold X axis title
-    axis.title.y = element_text(margin = margin(r = 0))   # Bold Y axis title
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(color = "black", size = 0.5),
+    axis.text.x = element_text(margin = margin(t = 0)),
+    axis.text.y = element_text(margin = margin(r = 0)),
+    axis.title.x = element_text(margin = margin(t = 0)),
+    axis.title.y = element_text(margin = margin(r = 0))
   )
 
-TLGL_gini <- ggstatsplot::ggbetweenstats(
+
+gini <- ggstatsplot::ggbetweenstats(
   data = Gini_index2,
   x = Group,
-  y = gini_muscle_blood,
+  y = Gini.Index,
   color = Group,
   title = "gini Index",
-  subtitle = "Grouped by cluster", type="nonparametric")
+  subtitle = "Grouped by cluster", type="parametric")
 
-TLGL_gini
+gini
 
 
-###load in CD57pos and CD57- samples####
-immundat3 <- repLoad("PATH")
+#load in CD57pos and CD57- samples
+immundat3 <- repLoad("C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TCRB IBM CD57- and CD57+")
+
 
 #Determine clonality of CD8CD57+ and CD57- TCRB repertoire 
 exp_vol_blood_muscle <- repExplore(immundat3$data, .method = "volume")
 vis(exp_vol_blood_muscle, .by = ("Status"), .meta = immundat3$meta)
+
 
 imm_hom3 <- repClonality(immundat3$data,
                          .method = "homeo",
@@ -306,32 +657,71 @@ imm_gene3 <- geneUsage(immundat3$data, "hs.trbv", .norm = T)
 vis(imm_gene3, .by = "Status", .meta = immundat3$meta)
 
 
-#repertoire overlap and tracking clonotypes 
+#Just muscle samples
 
-public3 <- repOverlap(immundat3$data,.method = "public", .verbose = F)
-vis(public3)
+immundatmus <- repLoad("C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/muscle samples/immunarch")
 
-repOverlapAnalysis(public2, "tsne+kmeans")%>% vis()
+#Determine clonality of CD8CD57+ TCRB repertoire 
+exp_vol <- repExplore(immundatmus $data, .method = "volume")
+exp_vol
+vis(exp_vol, .by ="Status", .meta = immundatmus$meta)
 
-#clonotype tracking 
+imm_gu <- geneUsage(immundatmus$data, "hs.trbv", .norm = T)
 
-track_IBM2_57pos <- trackClonotypes(immundat3$data, list("IBM02_57pos", 10), .col = "aa")
-track_IBM3_57pos <- trackClonotypes(immundat3$data, list("IBM03_57pos", 10), .col = "aa")
-track_IBM4_57pos <- trackClonotypes(immundat3$data, list("IBM04_57pos", 10), .col = "aa")
-track_IBM5_57pos <- trackClonotypes(immundat3$data, list("IBM05_57pos", 10), .col = "aa")
-track_IBM6_57pos <- trackClonotypes(immundat3$data, list("IBM06_57pos", 10), .col = "aa")
-track_IBM12_57pos <- trackClonotypes(immundat3$data, list("IBM12_57pos", 10), .col = "aa")
-track_IBM13_57pos <- trackClonotypes(immundat3$data, list("IBM13_57pos", 10), .col = "aa")
+vis(imm_gu, .by = "Status", .meta = immundatmus$meta)
 
-vis(track_IBM2_57pos)
-vis(track_IBM3_57pos)
-vis(track_IBM4_57pos)
-vis(track_IBM5_57pos)
-vis(track_IBM6_57pos)
-vis(track_IBM12_57pos)
-p35<-vis(track_IBM13_57pos)
+repoverlap <- repOverlap(immundatmus$data,.method = "public", .verbose = F)
+vis(repoverlap)
+
+imm_hom <- repClonality(immundatmus$data,
+                        .method = "homeo",
+                        .clone.types = c(Small = .0001, Medium = .001, Large = .01, Hyperexpanded = 1))
+vis(imm_hom,.by="Status", .meta = immundatmus$meta)
+
+
+imm_top <- repClonality(immundatmus$data, .method = "top", .head = c(10, 100, 1000))
+vis(imm_top, .by = "Status", .meta = immundatmus$meta)
+vis(imm_top)
+vis(imm_pr, .by = "Status", .meta = immundatmus$meta)
+
+imm_pr <- repClonality(immundatmus$data, .method = "clonal.prop")
+imm_pr
+
+#length of CDR3
+
+exp_len <- repExplore(immundatmus$data, .method = "len", .col = "aa")
+vis(exp_len, .by = "Status", .meta = immundatmus$meta)
+exp_cnt <- repExplore(immdata$data, .method = "count")
+exp_vol <- repExplore(immdata$data, .method = "volume")
+
+p1 <- vis(exp_len)
+p2 <- vis(exp_cnt)
+p3 <- vis(exp_vol)
+p1
 
 # Adjust Y-axis range to go from 0 to 1 with increments of 0.1
-p35 <- p35 + scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1))
+p1 <- p1 + scale_x_continuous(limits = c(0, 30), breaks = seq(0, 30, 5))
+
 # Print the modified plot
-print(p35)
+print(p1)
+
+
+
+#only paired blood/muscle
+
+musclepaired <- repLoad("C:/Users/emily/OneDrive - Murdoch University/PhD/TCR paper/TCR Garvan data/TCRB muscle and blood/only paired samples")
+
+
+
+#Determine clonality of CD8CD57+ TCRB repertoire 
+exp_vol <- repExplore(musclepaired$data, .method = "volume")
+vis(exp_vol, .by ="Status", .meta = musclepaired$meta)
+
+imm_gu <- geneUsage(musclepaired$data, "hs.trbv", .norm = T)
+
+vis(imm_gu, .by = "Status", .meta = musclepaired$meta)
+
+
+imm_top <- repClonality(immdata$data, .method = "top", .head = c(10, 100, 1000, 3000, 10000))
+vis(imm_top, .by = "Status", .meta = immdata$meta)
+vis(imm_top)
